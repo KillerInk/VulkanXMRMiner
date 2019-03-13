@@ -23,14 +23,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <fstream>
 #ifdef __MINGW32__
+#include <winsock2.h>
 #include <ws2tcpip.h>
 #include <winsock.h>
-#include <winsock2.h>
 #else
 #include <termios.h>
 #endif
 #include <fcntl.h>
+#ifdef MSVC
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 
 #include "log.hpp"
@@ -492,7 +496,7 @@ selectWS:
 
 	vulkanEnd();
 #ifdef __MINGW32__
-	Sleep(4);				// time to read before cmd exit
+	Sleep(4*1000);				// time to read before cmd exit
 #endif
 }
 

@@ -18,13 +18,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef MSVC
+#include "win_time.h"
+#else
 #include <sys/time.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
 #include <fcntl.h>
+#ifdef MSVC
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+#ifndef MSVC
 #include <semaphore.h>
+#endif
 #include <inttypes.h>
 #include <iostream>
 

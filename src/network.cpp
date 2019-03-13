@@ -18,9 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef __MINGW32__
+
+#include <winsock2.h>
 #include <ws2tcpip.h>
 #include <winsock.h>
-#include <winsock2.h>
 #include <windows.h>
 #define MSG_NOSIGNAL 0
 #else
@@ -31,13 +32,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include <sys/types.h>
 #include <string.h>
+#ifdef MSVC
+#include <io.h>
+#include "win_time.h"
+#include "win_usleep.h"
+#else
 #include <unistd.h>
+#include <sys/time.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <assert.h>
+#ifndef MSVC
 #include <pthread.h>
 #include <semaphore.h>
-#include <sys/time.h>
+#endif
+
+
 #include <iostream>
 
 
@@ -128,6 +139,8 @@ static bool hostname_to_ip(const char *hostname, char* ip) {
 
 	return false;
 }
+
+
 
 static uint64_t now(void) {
 	struct timeval tv;
@@ -419,6 +432,7 @@ bool lookForPool(int index) {
 	return true;
 }
 
+
 static void WaitForJob() {
 	while (blob[0] == 0) {
 		usleep(100);
@@ -514,7 +528,13 @@ bool connectToPool(int index) {
 
 void closeConnection(int index) {
 	if (connections[index] != 0)
+#ifdef MSVC
+		closesocket(connections[index]);
+#else
 		close(connections[index]);
+#endif // 
+
+		
 	connections[index] = 0;
 }
 
@@ -558,7 +578,11 @@ static void checkInvalidShare(const char *msg) {
 		error("Too many INVALID shares.", "Check your config or you will be BANNED!!");
 
 		// avoid crazy connection loop on errors.
+#ifdef MSVC
+		Sleep(20*1000);
+#else
 		sleep(20);
+#endif
 
 		// then reset the connection
 		if (lookForPool(current_index))
@@ -852,7 +876,11 @@ void *networkThread(void *args) {
 		checkAndConsume();
 		if (current_index == 0 && connections[current_index] == 0) {
 			error("Mining pool connection lost....", "will retry in 10 seconds");
+#ifdef MSVC
+			Sleep(10*1000);
+#else
 			sleep(10);
+#endif
 			error("try to reconnect", "to mining pool");
 			if (lookForPool(current_index))
 				connectToPool(current_index);

@@ -17,22 +17,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <string.h>
 #include <iostream>
+#ifndef MSVC
 #include <sys/time.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef MSVC
+#include <io.h>
+#include "win_usleep.h"
+#else
 #include <unistd.h>
+#endif
+#ifndef MSVC
 #include <pthread.h>
+#endif
 #ifdef __MINGW32__
+#ifndef MSVC
+#include <winsock2.h>
 #include <ws2tcpip.h>
 #include <winsock.h>
-#include <winsock2.h>
-#include <conio.h>
 #include <windows.h>
+#endif
+#include <conio.h>
+
 #else
 #include <termios.h>
 #endif
+#ifdef MSVC
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <iomanip>
 
 #include "config.hpp"
@@ -130,7 +146,12 @@ int main(int argc, char **argv) {
 
 	while (getVariant() == 0) {
 		cout << "Waiting for pool to send blob....\n";
+#ifdef MSVC
+		Sleep(5*1000);
+#else
 		sleep(5);
+#endif
+		
 	}
 	cpuMiner.variant = getVariant();
 	cout << "Using XMR Variant: ";
@@ -221,7 +242,11 @@ int main(int argc, char **argv) {
 			loop++;
 
 		cout << flush;
+#ifdef MSVC
+		Sleep(1*1000);
+#else
 		sleep(1);
+#endif
 	}
 
 	requestStop();

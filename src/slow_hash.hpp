@@ -8,7 +8,11 @@
 #define AES_KEY_SIZE    32
 #define INIT_SIZE_BLK   8
 #define INIT_SIZE_BYTE (INIT_SIZE_BLK * AES_BLOCK_SIZE)
+#ifdef MSVC
+#define RDATA_ALIGN16 __declspec(align(16))
+#else
 #define RDATA_ALIGN16 __attribute__ ((aligned(16)))
+#endif
 
 union hash_state {
   uint8_t b[200];

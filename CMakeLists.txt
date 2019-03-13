@@ -13,12 +13,20 @@ set(CMAKE_CXX_STANDARD 11)
 # change the processor target here if needed
 set(ARCH "native")
 
+if(MSVC)
+add_definitions(-D__MINGW32__)
+add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
+add_definitions(-DMSVC)
+endif()
+
 # change gcc for Windows 64 build
+if(NOT MSVC)
 if(WIN32)
 	SET(CMAKE_SYSTEM_NAME Windows)
 	SET(CMAKE_C_COMPILER x86_64-w64-mingw32-g++-win32)
 	SET(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++-win32)
 	SET(CMAKE_FIND_ROOT_PATH /usr/bin/)
+endif()
 endif()
 
 # set AVX for debug,release,unspecified
@@ -36,7 +44,11 @@ endif()
 # Look for vulkan SDK
 # For a Windows build on Linux, install the Vulkan SDK with wine, and set VULKAN_SDK to ..../.wine/drive_c/VulkanSDK/1.x.y
 # For Linux, install libvulkan-dev
+if(MSVC)
+find_path(VulkanIncludes Include/vulkan/vulkan.h PATHS $ENV{VK_SDK_PATH} )
+else()
 find_path(VulkanIncludes vulkan/vulkan.h PATHS ENV VULKAN_SDK ENV /usr )
+endif()
 if(NOT VulkanIncludes)
   message(FATAL_ERROR "Can't find folder containing vulkan.h")
 endif()
@@ -57,7 +69,11 @@ endif()
 	
 # Add Include/Lib (Windows) and include/lib (Linux)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set(ADDITIONAL_LIBRARIES vulkan-1 pthread ws2_32)
+if(MSVC)
+	set(ADDITIONAL_LIBRARIES vulkan-1 ws2_32)
+else()
+	set(ADDITIONAL_LIBRARIES vulkan-1 pthread ws2_32)
+endif()
 	include_directories("$ENV{VULKAN_SDK}/Include")
 	link_directories("$ENV{VULKAN_SDK}/Lib")
 endif()
@@ -80,7 +96,7 @@ add_custom_command(TARGET miner PRE_BUILD
 add_custom_command(TARGET miner PRE_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/redist .)
 add_custom_command(TARGET miner POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/build/miner ${CMAKE_SOURCE_DIR}/build/miner.exe)
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/build/miner.exe ${CMAKE_SOURCE_DIR}/build/miner.exe)
 
 # make the download file for Linux
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -92,6 +108,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     )
 endif()
 
+if(NOT MSVC)
 # same as Linux, but add mingw runtime DLLs.
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 	add_custom_target(zip ALL DEPENDS miner COMMAND
@@ -104,3 +121,5 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     "libwinpthread-1.dll"
     )
 endif()
+endif()
+

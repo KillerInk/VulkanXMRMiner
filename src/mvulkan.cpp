@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,8 +57,8 @@ int vulkanInit(){
 	std::vector<const char*> enabledInstanceExtensions;
 
 	const VkInstanceCreateInfo instanceCreateInfo = {
-	    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,								// stype
-	    0,																	// pNext
+		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,								// stype
+	    NULL,																	// pNext
 	    0,																	// flags
 	    &applicationInfo,													// pApplicationInfo
 		static_cast<uint32_t>(enabledInstanceLayers.size()),				// enabledLayerCount

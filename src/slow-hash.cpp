@@ -36,6 +36,9 @@
 #ifdef __MINGW32__
 #include <windows.h>
 #include <intrin.h>
+#ifdef MSVC
+#pragma intrinsic(_mul128)
+#endif
 #else
 #include <sys/mman.h>
 #endif
@@ -45,7 +48,11 @@
 #include <stdint.h>
 #include <time.h>
 #include <sys/types.h>
+#ifdef MSVC
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <sys/timeb.h>
 
 #include <cstdint>
@@ -183,6 +190,9 @@ static void xor64(uint64_t *a, const uint64_t b) {
 			lo ^= *(U64(php_state + (j ^ 0x20)) + 1); \
 		};
 
+#ifdef MSVC
+#define __builtin_unreachable() __assume(0)
+#endif // WIN32
 
 
 // Random math interpreter's loop is fully unrolled and inlined to achieve 100% branch prediction on CPU:
@@ -263,7 +273,12 @@ void v4_random_math(const struct V4_Instruction* code, v4_reg* r)
 #if defined(__x86_64__)
 #define __mul() __asm("mulq %3\n\t" : "=d"(hi), "=a"(lo) : "%a" (c[0]), "rm" (b[0]) : "cc");
 #else
+#ifdef MSVC
+//#pragma warning(2:4235)
+#define __mul() _mul128(c[0], b[0], (LONG64*)&hi);
+#else
 #define __mul() lo = mul128(c[0], b[0], &hi);
+#endif
 #endif
 
 /*
