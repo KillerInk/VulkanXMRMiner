@@ -468,7 +468,7 @@ bool connectToPool(int index) {
 	}
 	int len = 0;
 #if __MINGW32__
-        len = recv(connections[index], msg, 2048,0);
+        len = recv(connections[index], msg, 4096,0);
         if (len < 0) {
         	debug("Mining pools failed to respond",NULL);
         }
