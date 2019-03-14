@@ -410,7 +410,7 @@ bool lookForPool(int index) {
 
 #ifdef __MINGW32__
 	// SET THE TIME OUT
-	DWORD timeout = 300;
+	DWORD timeout = 3000;
 	if (setsockopt(soc, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(DWORD))) {
 		printf("Error: %d\n",WSAGetLastError());
 		error("setsockopt error",NULL);
